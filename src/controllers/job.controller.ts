@@ -1,110 +1,25 @@
-import { Response, NextFunction } from "express";
-import { AuthRequest } from "../types";
+import { Request, Response } from "express";
 import Job from "../models/job.model";
-import { sendSuccess, sendPaginated } from "../utils/response";
-import { AppError } from "../utils/AppError";
 
-export const getAllJobs = async (
-  req: AuthRequest,
-  res: Response,
-  next: NextFunction
-): Promise<void> => {
-  try {
-    const page = parseInt(req.query.page as string) || 1;
-    const limit = parseInt(req.query.limit as string) || 10;
-    const skip = (page - 1) * limit;
-
-    const filter: Record<string, unknown> = { status: "open" };
-
-    if (req.query.type) filter.type = req.query.type;
-    if (req.query.location) {
-      filter.location = { $regex: req.query.location as string, $options: "i" };
-    }
-    if (req.query.search) {
-      filter.$text = { $search: req.query.search as string };
-    }
-
-    const [jobs, total] = await Promise.all([
-      Job.find(filter)
-        .populate("postedBy", "name email")
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit),
-      Job.countDocuments(filter),
-    ]);
-
-    sendPaginated(res, jobs, total, page, limit);
-  } catch (error) {
-    next(error);
-  }
+// GET /api/jobs - Get all jobs
+export const getAllJobs = async (_req: Request, res: Response): Promise<void> => {
+  res.json({ message: "TODO: Get all jobs" });
 };
 
-export const getJobById = async (
-  req: AuthRequest,
-  res: Response,
-  next: NextFunction
-): Promise<void> => {
-  try {
-    const job = await Job.findById(req.params.id).populate(
-      "postedBy",
-      "name email"
-    );
-    if (!job) {
-      throw new AppError("Job not found.", 404);
-    }
-    sendSuccess(res, job, "Job fetched successfully");
-  } catch (error) {
-    next(error);
-  }
+// GET /api/jobs/:id - Get single job
+export const getJobById = async (_req: Request, res: Response): Promise<void> => {
+  res.json({ message: "TODO: Get job by id" });
 };
 
-export const createJob = async (
-  req: AuthRequest,
-  res: Response,
-  next: NextFunction
-): Promise<void> => {
-  try {
-    const job = await Job.create({ ...req.body, postedBy: req.user?.id });
-    sendSuccess(res, job, "Job created successfully", 201);
-  } catch (error) {
-    next(error);
-  }
+// POST /api/jobs - Create a job (Admin)
+export const createJob = async (_req: Request, res: Response): Promise<void> => {
+  res.json({ message: "TODO: Create job" });
 };
 
-export const updateJob = async (
-  req: AuthRequest,
-  res: Response,
-  next: NextFunction
-): Promise<void> => {
-  try {
-    const job = await Job.findOne({ _id: req.params.id, postedBy: req.user?.id });
-    if (!job) {
-      throw new AppError("Job not found or unauthorized.", 404);
-    }
-
-    const updatedJob = await Job.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true,
-    });
-    sendSuccess(res, updatedJob, "Job updated successfully");
-  } catch (error) {
-    next(error);
-  }
+// DELETE /api/jobs/:id - Delete a job (Admin)
+export const deleteJob = async (_req: Request, res: Response): Promise<void> => {
+  res.json({ message: "TODO: Delete job" });
 };
 
-export const deleteJob = async (
-  req: AuthRequest,
-  res: Response,
-  next: NextFunction
-): Promise<void> => {
-  try {
-    const job = await Job.findOne({ _id: req.params.id, postedBy: req.user?.id });
-    if (!job) {
-      throw new AppError("Job not found or unauthorized.", 404);
-    }
-    await Job.findByIdAndDelete(req.params.id);
-    sendSuccess(res, null, "Job deleted successfully");
-  } catch (error) {
-    next(error);
-  }
-};
+// We reference Job model to avoid unused import warning
+const _Job = Job;
