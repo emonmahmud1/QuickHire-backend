@@ -3,6 +3,7 @@ import cors from "cors";
 import morgan from "morgan";
 import { errorHandler } from "./middlewares/errorHandler";
 import { notFound } from "./middlewares/notFound";
+import { connectDB } from "./config/db";
 import authRoutes from "./routes/auth.routes";
 import jobRoutes from "./routes/job.routes";
 import applicationRoutes from "./routes/application.routes";
@@ -17,6 +18,19 @@ app.use(morgan("dev"));
 // Health check
 app.get("/", (_req: Request, res: Response) => {
   res.json({ message: "QuickHire API is running" });
+});
+
+// In serverless environments, ensure DB is ready before handling API routes.
+app.use("/api", async (_req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch {
+    res.status(500).json({
+      success: false,
+      message: "Database connection failed",
+    });
+  }
 });
 
 // Routes

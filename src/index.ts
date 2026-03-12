@@ -6,8 +6,10 @@ import { connectDB } from "./config/db";
 
 const PORT = process.env.PORT || 5000;
 
-// Connect DB
-connectDB();
+// Connect DB once at cold start; API middleware will ensure retries if needed.
+connectDB().catch((error) => {
+  console.error("[MongoDB] Initial connection attempt failed:", error);
+});
 
 // For local development
 if (process.env.NODE_ENV !== "production") {
