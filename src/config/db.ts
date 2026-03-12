@@ -4,22 +4,31 @@ import dns from "dns";
 // Force Google DNS — fixes MongoDB Atlas SRV lookup failures on restrictive ISPs
 dns.setServers(["8.8.8.8", "8.8.4.4"]);
 
+let cachedConnectionPromise: Promise<typeof mongoose> | null = null;
+
 export const connectDB = async (): Promise<void> => {
-  try {
-    const mongoUri = process.env.MONGODB_URI as string;
+  const mongoUri = process.env.MONGODB_URI as string;
 
-    if (!mongoUri) {
-      throw new Error("MONGODB_URI is not defined in environment variables");
-    }
+  if (!mongoUri) {
+    throw new Error("MONGODB_URI is not defined in environment variables");
+  }
 
-    const conn = await mongoose.connect(mongoUri, {
+  if (mongoose.connection.readyState === 1) return;
+
+  if (!cachedConnectionPromise) {
+    cachedConnectionPromise = mongoose.connect(mongoUri, {
       family: 4, // Force IPv4 — fixes DNS SRV resolution on Windows
       serverSelectionTimeoutMS: 10000,
     });
+  }
+
+  try {
+    const conn = await cachedConnectionPromise;
     console.log(`[MongoDB] Connected: ${conn.connection.host}`);
   } catch (error) {
+    cachedConnectionPromise = null;
     console.error("[MongoDB] Connection error:", error);
-    // Don't exit — server will still respond, but DB queries will fail
+    throw error;
   }
 };
 
