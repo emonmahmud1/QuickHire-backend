@@ -57,12 +57,53 @@ export const getJobById = async (req: Request, res: Response): Promise<void> => 
   }
 };
 
-// POST /api/jobs - Create a job (Admin)
-export const createJob = async (_req: Request, res: Response): Promise<void> => {
-  res.json({ message: "TODO: Create job" });
+// POST /api/jobs - Create a job (Admin only)
+export const createJob = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { title, company, location, category, description } = req.body;
+
+    const job = await Job.create({
+      title,
+      company,
+      location,
+      category,
+      description,
+    });
+
+    res.status(201).json({
+      success: true,
+      message: "Job created successfully.",
+      data: job,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Server error. Could not create job.",
+    });
+  }
 };
 
-// DELETE /api/jobs/:id - Delete a job (Admin)
-export const deleteJob = async (_req: Request, res: Response): Promise<void> => {
-  res.json({ message: "TODO: Delete job" });
+// DELETE /api/jobs/:id - Delete a job (Admin only)
+export const deleteJob = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const job = await Job.findByIdAndDelete(req.params.id);
+
+    if (!job) {
+      res.status(404).json({
+        success: false,
+        message: "Job not found.",
+      });
+      return;
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Job deleted successfully.",
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: "Invalid job ID format.",
+    });
+  }
 };
