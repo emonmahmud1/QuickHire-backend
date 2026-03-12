@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { body } from "express-validator";
-import { getAllJobs, getJobById, createJob, deleteJob } from "../controllers/job.controller";
-import { adminAuth } from "../middlewares/adminAuth";
+import { getAllJobs, getJobById, createJob, deleteJob, getMyJobs } from "../controllers/job.controller";
+import { protect, adminOnly } from "../middlewares/auth";
 import { validate } from "../middlewares/validate";
 
 const router = Router();
@@ -9,13 +9,16 @@ const router = Router();
 // GET /api/jobs
 router.get("/", getAllJobs);
 
+// GET /api/jobs/my/posted - Get jobs posted by current user (Protected)
+router.get("/my/posted", protect, getMyJobs);
+
 // GET /api/jobs/:id
 router.get("/:id", getJobById);
 
-// POST /api/jobs  (Admin only)
+// POST /api/jobs  (Protected - any logged in user can post)
 router.post(
   "/",
-  adminAuth,
+  protect,
   [
     body("title")
       .trim()
@@ -47,6 +50,6 @@ router.post(
 );
 
 // DELETE /api/jobs/:id  (Admin only)
-router.delete("/:id", adminAuth, deleteJob);
+router.delete("/:id", protect, adminOnly, deleteJob);
 
 export default router;

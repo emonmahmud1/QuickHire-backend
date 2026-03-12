@@ -57,7 +57,7 @@ export const getJobById = async (req: Request, res: Response): Promise<void> => 
   }
 };
 
-// POST /api/jobs - Create a job (Admin only)
+// POST /api/jobs - Create a job (Admin or User)
 export const createJob = async (req: Request, res: Response): Promise<void> => {
   try {
     const { title, company, location, category, description } = req.body;
@@ -68,6 +68,7 @@ export const createJob = async (req: Request, res: Response): Promise<void> => {
       location,
       category,
       description,
+      postedBy: req.user?.id, // Save who posted the job
     });
 
     res.status(201).json({
@@ -104,6 +105,24 @@ export const deleteJob = async (req: Request, res: Response): Promise<void> => {
     res.status(400).json({
       success: false,
       message: "Invalid job ID format.",
+    });
+  }
+};
+
+// GET /api/jobs/my/posted - Get jobs posted by current user
+export const getMyJobs = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const jobs = await Job.find({ postedBy: req.user?.id }).sort({ created_at: -1 });
+
+    res.status(200).json({
+      success: true,
+      count: jobs.length,
+      data: jobs,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Server error. Could not fetch jobs.",
     });
   }
 };

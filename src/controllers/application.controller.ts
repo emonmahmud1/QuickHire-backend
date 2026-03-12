@@ -57,3 +57,30 @@ export const submitApplication = async (req: Request, res: Response): Promise<vo
     });
   }
 };
+
+// GET /api/applications/my - Get applications for jobs posted by current user
+export const getMyApplications = async (req: Request, res: Response): Promise<void> => {
+  try {
+    // Get all jobs posted by current user
+    const myJobs = await Job.find({ postedBy: req.user?.id }).select("_id");
+    const jobIds = myJobs.map((job) => job._id);
+
+    // Get all applications for these jobs
+    const applications = await Application.find({
+      job_id: { $in: jobIds },
+    })
+      .populate("job_id", "title company")
+      .sort({ created_at: -1 });
+
+    res.status(200).json({
+      success: true,
+      count: applications.length,
+      data: applications,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Server error. Could not fetch applications.",
+    });
+  }
+};

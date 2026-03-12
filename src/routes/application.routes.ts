@@ -1,9 +1,13 @@
 import { Router } from "express";
 import { body } from "express-validator";
-import { submitApplication } from "../controllers/application.controller";
+import { submitApplication, getMyApplications } from "../controllers/application.controller";
+import { protect } from "../middlewares/auth";
 import { validate } from "../middlewares/validate";
 
 const router = Router();
+
+// GET /api/applications/my - Get applications for current user's jobs
+router.get("/my", protect, getMyApplications);
 
 // POST /api/applications
 router.post(

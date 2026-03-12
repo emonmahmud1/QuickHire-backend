@@ -7,6 +7,7 @@ export interface IJob extends Document {
   location: string;
   category: string;
   description: string;
+  postedBy?: mongoose.Types.ObjectId;
   created_at: Date;
 }
 
@@ -34,6 +35,11 @@ const jobSchema = new Schema({
   description: {
     type: String,
     required: [true, "Description is required"],
+  },
+  postedBy: {
+    type: Schema.Types.ObjectId,
+    ref: "User",
+    required: false,
   },
   created_at: {
     type: Date,

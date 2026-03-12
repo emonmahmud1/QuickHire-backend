@@ -3,6 +3,7 @@ import cors from "cors";
 import morgan from "morgan";
 import { errorHandler } from "./middlewares/errorHandler";
 import { notFound } from "./middlewares/notFound";
+import authRoutes from "./routes/auth.routes";
 import jobRoutes from "./routes/job.routes";
 import applicationRoutes from "./routes/application.routes";
 
@@ -19,6 +20,7 @@ app.get("/", (_req: Request, res: Response) => {
 });
 
 // Routes
+app.use("/api/auth", authRoutes);
 app.use("/api/jobs", jobRoutes);
 app.use("/api/applications", applicationRoutes);
 
